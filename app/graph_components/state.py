@@ -1,6 +1,16 @@
-from dotenv import load_dotenv
-from langchain_ollama import OllamaEmbeddings
-from langchain_chroma import Chroma
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_unstructured import UnstructuredLoader
+from typing import TypedDict
 
+
+class GraphState(TypedDict):
+    """
+    Represents the state of our graph.
+
+    Attributes:
+        question: question
+        generation: LLM generation
+        documents: list of documents
+    """
+
+    question: str
+    generation: str
+    documents: list[str]
