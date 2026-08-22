@@ -1,3 +1,4 @@
+from app.graph_components.graph_state import GraphState
 from chromadb.api.types import Document
 from dotenv import load_dotenv
 from langchain_chroma import Chroma, PersistentClient
@@ -49,11 +50,13 @@ def get_data_with_database(collection_name: str) -> VectorStoreRetriever:
 
     return vectorstore.as_retriever(search_kwargs={"k": 5})
 
-def retrieve_documents_node(state: GraphState, collection_name: str) -> dict[str, list[Document]]:
-        """Search the documents for the given query and returns the updated 'documents' key for GraphState."""
 
-        query = state["query"]
-        documents = get_data_with_database(collection_name).invoke(query)
+def retrieve_documents_node(
+    state: GraphState, collection_name: str
+) -> dict[str, list[Document]]:
+    """Search the documents for the given query and returns the updated 'documents' key for GraphState."""
 
-        return {"documents": documents}
+    query = state["query"]
+    documents = get_data_with_database(collection_name).invoke(query)
 
+    return {"documents": documents}
