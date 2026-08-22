@@ -3,7 +3,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
 from pydantic import BaseModel, Field
 
-MODEL = "gemini-3.7-flash"
+MODEL = "gemini-3.5-flash-lite"
 
 llm = ChatGoogleGenerativeAI(model=MODEL)
 
@@ -17,12 +17,18 @@ class DocumentCompliance(BaseModel):
     )
 
 
+system_prompt = """
+You are an expert retrieval grader evaluating whether retrieved documents are relevant to a user question.
+
+Evaluation Rules:
+1. Meaning over keywords: Look for semantic relevance and useful context that helps answer the question, not just matching keywords.
+2. Partial match: If ANY part of the provided documents contains relevant facts, information, or partial answers to the question, grade it as relevant.
+3. Irrelevant: If the documents are completely off-topic, contradictory noise, or lack any factual relation to the question, grade as not relevant.
+"""
+
 prompt = ChatPromptTemplate.from_messages(
     [
-        (
-            "system",
-            "You are a helpful assistant that checks if the retrieved documents are relevant to the user's query.",
-        ),
+        ("system", system_prompt),
         ("human", "Question: {question}\n\nRetrieved Documents:\n\n{documents}"),
     ]
 )
@@ -30,7 +36,7 @@ prompt = ChatPromptTemplate.from_messages(
 retrieval_grader_chain = prompt | llm.with_structured_output(DocumentCompliance)
 
 
-def retrieval_grader_node(state: GraphState) -> dict[str, str]:
+def is_retrieval_relevant(state: GraphState) -> bool:
     """Check if the retrieved documents are relevant to the user's query."""
 
     documents = "\n\n".join(state["documents"])
@@ -39,4 +45,4 @@ def retrieval_grader_node(state: GraphState) -> dict[str, str]:
         {"question": state["question"], "documents": documents}
     )
 
-    return {"compliance": compliance}
+    return compliance.is_relevant
